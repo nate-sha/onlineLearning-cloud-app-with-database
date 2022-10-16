@@ -86,8 +86,7 @@
         {% for question in lesson.question_set.all %}
         <div class="card">
           <div class="card-body">
-            <h5 class="card-title">{{ question.question_text }}</h5>
-            <p class="card-text">Your answer</p>
+            <h5 class="card-header">{{ question.question_text }}</h5>
             {% for choice in question.choice_set.all %}
             {% if choice.id in selected_ids %}
             <p class="card-text">Correct answer: {{ choice.content }}</p>
