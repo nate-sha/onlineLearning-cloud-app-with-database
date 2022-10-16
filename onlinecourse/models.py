@@ -107,10 +107,16 @@ class Question(models.Model):
         all_answers = self.choice_set.filter(is_correct=True).count()
         selected_correct = self.choice_set.filter(
             is_correct=True, id__in=selected_ids).count()
-        if all_answers == selected_correct:
+        selected_incorrect = self.choice_set.filter(
+            is_correct=False, id__in=selected_ids).count()
+
+        if all_answers == selected_correct and not selected_incorrect:
             return True
         else:
             return False
+
+    def __str__(self):
+        return self.question_text
 
 
 class Choice(models.Model):
@@ -118,7 +124,10 @@ class Choice(models.Model):
     content = models.TextField()
     is_correct = models.BooleanField(default=False)
 
+    def __str__(self):
+        return self.content
+
 
 class Submission(models.Model):
     enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE)
-    choices = models.ManyToManyField(Choice)
+    choices = models.ManyToManyField(Choice, related_name='submission')
