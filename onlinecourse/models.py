@@ -7,7 +7,6 @@ except Exception:
     sys.exit()
 
 from django.conf import settings
-import uuid
 
 
 # Instructor model
@@ -21,6 +20,9 @@ class Instructor(models.Model):
 
     def __str__(self):
         return self.user.username
+
+    class Meta:
+        ordering = ['user']
 
 
 # Learner model
@@ -51,6 +53,10 @@ class Learner(models.Model):
         return self.user.username + "," + \
             self.occupation
 
+    class Meta:
+        verbose_name = 'Learner'
+        verbose_name_plural = 'Learners'
+
 
 # Course model
 class Course(models.Model):
@@ -68,6 +74,9 @@ class Course(models.Model):
         return "Name: " + self.name + "," + \
                "Description: " + self.description
 
+    class Meta:
+        ordering = ['-pub_date']
+
 
 # Lesson model
 class Lesson(models.Model):
@@ -76,10 +85,14 @@ class Lesson(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     content = models.TextField()
 
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        ordering = ['order']
+
 
 # Enrollment model
-# <HINT> Once a user enrolled a class, an enrollment entry should be created between the user and course
-# And we could use the enrollment to track information such as exam submissions
 class Enrollment(models.Model):
     AUDIT = 'audit'
     HONOR = 'honor'
@@ -96,13 +109,18 @@ class Enrollment(models.Model):
     mode = models.CharField(max_length=5, choices=COURSE_MODES, default=AUDIT)
     rating = models.FloatField(default=5.0)
 
+    def __str__(self):
+        return self.user.username + "," + self.course.name + "," + self.mode
+
+    class Meta:
+        ordering = ['rating']
+
 
 class Question(models.Model):
     lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
     question_text = models.TextField()
     grade = models.IntegerField(default=0)
 
-    # A sample model method to calculate if learner get the score of the question
     def is_get_score(self, selected_ids):
         all_answers = self.choice_set.filter(is_correct=True).count()
         selected_correct = self.choice_set.filter(
@@ -118,6 +136,9 @@ class Question(models.Model):
     def __str__(self):
         return self.question_text
 
+    class Meta:
+        ordering = ['lesson']
+
 
 class Choice(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
@@ -127,7 +148,16 @@ class Choice(models.Model):
     def __str__(self):
         return self.content
 
+    class Meta:
+        ordering = ['question']
+
 
 class Submission(models.Model):
     enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE)
     choices = models.ManyToManyField(Choice, related_name='submission')
+
+    def __str__(self):
+        return self.enrollment.user.username + "," + self.enrollment.course.name
+
+    class Meta:
+        ordering = ['enrollment']
